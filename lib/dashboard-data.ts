@@ -1,6 +1,27 @@
 
 import { DashboardData } from './types';
-import dashboardDataRaw from '../data/dashboard_data.json';
+
+// Safe import with error handling
+let dashboardDataRaw: any = {};
+try {
+  dashboardDataRaw = require('../data/dashboard_data.json');
+} catch (error) {
+  console.error('Failed to load dashboard data:', error);
+  dashboardDataRaw = {
+    overview: {
+      total_activities: 0,
+      completed_activities: 0,
+      in_progress_activities: 0,
+      delayed_activities: 0,
+      not_started_activities: 0,
+      completion_percentage: 0
+    },
+    phases: [],
+    support: { activities: [], completed_support: 0, total_support: 0 },
+    risks: { risks_list: [], active_risks: 0, resolved_risks: 0, total_risks: 0 },
+    timeline: { time_progress_percentage: 0, activity_progress_percentage: 0 }
+  };
+}
 
 export const dashboardData: DashboardData = dashboardDataRaw as DashboardData;
 

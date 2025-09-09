@@ -5,6 +5,7 @@ import './globals.css'
 import { ThemeProvider } from '@/components/theme-provider'
 import { Toaster } from 'sonner'
 import { Navbar } from '@/components/navbar'
+import { ErrorBoundary } from '@/components/error-boundary'
 
 const cairo = Cairo({
   subsets: ['arabic', 'latin'],
@@ -42,13 +43,15 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <div className="min-h-screen bg-background">
-            <Navbar />
-            <main className="relative">
-              {children}
-            </main>
-          </div>
-          <Toaster position="top-center" />
+          <ErrorBoundary>
+            <div className="min-h-screen bg-background">
+              <Navbar />
+              <main className="relative">
+                {children}
+              </main>
+            </div>
+            <Toaster position="top-center" />
+          </ErrorBoundary>
         </ThemeProvider>
       </body>
     </html>

@@ -23,11 +23,24 @@ import Link from 'next/link';
 import { getDashboardOverview, getPhases, getSupportActivities, getRisksData, getTimelineData } from '@/lib/dashboard-data';
 
 export default function HomePage() {
-  const overview = getDashboardOverview();
-  const phases = getPhases();
-  const supportData = getSupportActivities();
-  const risksData = getRisksData();
-  const timelineData = getTimelineData();
+  // Safely get dashboard data with fallbacks
+  let overview, phases, supportData, risksData, timelineData;
+  
+  try {
+    overview = getDashboardOverview();
+    phases = getPhases();
+    supportData = getSupportActivities();
+    risksData = getRisksData();
+    timelineData = getTimelineData();
+  } catch (error) {
+    console.error('Error loading dashboard data:', error);
+    // Provide fallback data
+    overview = { total_activities: 0, completed_activities: 0, in_progress_activities: 0, delayed_activities: 0, not_started_activities: 0, completion_percentage: 0 };
+    phases = [];
+    supportData = { activities: [], completed_support: 0, total_support: 0 };
+    risksData = { risks_list: [], active_risks: 0, resolved_risks: 0, total_risks: 0 };
+    timelineData = { time_progress_percentage: 0, activity_progress_percentage: 0 };
+  }
 
   return (
     <div className="container mx-auto max-w-7xl px-4 py-8 space-y-8">
