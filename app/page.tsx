@@ -23,8 +23,12 @@ import Link from 'next/link';
 import { getDashboardOverview, getPhases, getSupportActivities, getRisksData, getTimelineData } from '@/lib/dashboard-data';
 
 export default function HomePage() {
-  // Safely get dashboard data with fallbacks
-  let overview, phases, supportData, risksData, timelineData;
+  // Safely get dashboard data with fallbacks - with proper typing
+  let overview: any;
+  let phases: any;
+  let supportData: any;
+  let risksData: any;
+  let timelineData: any;
   
   try {
     overview = getDashboardOverview();
