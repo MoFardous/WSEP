@@ -1,6 +1,7 @@
 
 'use client';
 
+import { useState, useEffect } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, LabelList } from 'recharts';
 
 interface ProgressChartProps {
@@ -18,6 +19,12 @@ const COLORS = {
 };
 
 export function ProgressChart({ completed, inProgress, delayed, notStarted }: ProgressChartProps) {
+  const [mounted, setMounted] = useState(false);
+  
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const total = completed + inProgress + delayed + notStarted;
   
   const data = [
@@ -80,6 +87,15 @@ export function ProgressChart({ completed, inProgress, delayed, notStarted }: Pr
       </text>
     );
   };
+
+  // Prevent hydration mismatch by only rendering chart on client
+  if (!mounted) {
+    return (
+      <div className="w-full h-[300px] flex items-center justify-center">
+        <div className="animate-pulse text-muted-foreground">جاري تحميل المخطط...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full h-[300px]">

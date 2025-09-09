@@ -1,6 +1,7 @@
 
 'use client';
 
+import { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, LabelList } from 'recharts';
 import { Phase } from '@/lib/types';
 
@@ -9,6 +10,11 @@ interface PhaseProgressProps {
 }
 
 export function PhaseProgress({ phases }: PhaseProgressProps) {
+  const [mounted, setMounted] = useState(false);
+  
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   const data = phases?.map((phase, index) => ({
     name: `المرحلة ${index + 1}`,
     fullName: phase.name,
@@ -47,6 +53,15 @@ export function PhaseProgress({ phases }: PhaseProgressProps) {
       </text>
     );
   };
+
+  // Prevent hydration mismatch
+  if (!mounted) {
+    return (
+      <div className="w-full h-[300px] flex items-center justify-center">
+        <div className="animate-pulse text-muted-foreground">جاري تحميل المخطط...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full h-[300px]">

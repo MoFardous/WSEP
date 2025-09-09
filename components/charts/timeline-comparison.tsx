@@ -1,6 +1,7 @@
 
 'use client';
 
+import { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Legend, Tooltip, LabelList } from 'recharts';
 
 interface TimelineComparisonProps {
@@ -9,6 +10,11 @@ interface TimelineComparisonProps {
 }
 
 export function TimelineComparison({ timeProgress, activityProgress }: TimelineComparisonProps) {
+  const [mounted, setMounted] = useState(false);
+  
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   const data = [
     {
       name: 'التقدم',
@@ -47,6 +53,15 @@ export function TimelineComparison({ timeProgress, activityProgress }: TimelineC
       </text>
     );
   };
+
+  // Prevent hydration mismatch
+  if (!mounted) {
+    return (
+      <div className="w-full h-[300px] flex items-center justify-center">
+        <div className="animate-pulse text-muted-foreground">جاري تحميل المخطط...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full h-[300px]">
