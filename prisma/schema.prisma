@@ -1,0 +1,82 @@
+generator client {
+    provider = "prisma-client-js"
+    binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x"]
+    output = "/home/ubuntu/arabic_dashboard/app/node_modules/.prisma/client"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+// Project Activity Model
+model Activity {
+  id                    Int      @id @default(autoincrement())
+  phase                String   // المرحلة
+  mainActivity         String   // النشاط الرئيسي
+  subActivity          String   // النشاط الفرعي
+  status               String   // الحالة
+  plannedStartDate     String   // تاريخ البدء المخطط
+  plannedEndDate       String   // تاريخ الانتهاء المخطط
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@map("activities")
+}
+
+// Support Activities Model
+model SupportActivity {
+  id                   Int      @id @default(autoincrement())
+  activity             String   // أعمال الدعم التشغيلي
+  teamMember          String   // المسؤول من الفريق
+  status              String   // الحالة
+  completionDate      String   // تاريخ الانتهاء
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@map("support_activities")
+}
+
+// Risks and Challenges Model
+model Risk {
+  id                  Int      @id @default(autoincrement())
+  description         String   // المخاطر والتحديات
+  type                String   // النوع
+  status              String   // الحالة
+  treatmentMechanism  String?  // آليات المعالجة
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@map("risks")
+}
+
+// Phase Summary Model
+model PhaseSummary {
+  id                     Int      @id @default(autoincrement())
+  name                   String   // اسم المرحلة
+  totalActivities        Int      // إجمالي الأنشطة
+  completedActivities    Int      // الأنشطة المكتملة
+  completionPercentage   Float    // نسبة الاكتمال
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  @@map("phase_summaries")
+}
+
+// Dashboard Settings Model
+model DashboardSettings {
+  id                        Int      @id @default(autoincrement())
+  totalActivities          Int      // إجمالي الأنشطة
+  completedActivities      Int      // الأنشطة المكتملة
+  inProgressActivities     Int      // الأنشطة قيد التنفيذ
+  delayedActivities        Int      // الأنشطة المتأخرة
+  notStartedActivities     Int      // الأنشطة التي لم تبدأ
+  completionPercentage     Float    // نسبة الاكتمال الإجمالية
+  timeProgressPercentage   Float    // نسبة التقدم الزمني
+  projectStart             String   // تاريخ بداية المشروع
+  currentDate              String   // التاريخ الحالي
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+
+  @@map("dashboard_settings")
+}
