@@ -24,11 +24,11 @@ import { getDashboardOverview, getPhases, getSupportActivities, getRisksData, ge
 
 export default function HomePage() {
   // Safely get dashboard data with fallbacks - with proper typing
-  let overview: any;
-  let phases: any;
-  let supportData: any;
-  let risksData: any;
-  let timelineData: any;
+  let overview: any = null;
+  let phases: any = null;
+  let supportData: any = null;
+  let risksData: any = null;
+  let timelineData: any = null;
   
   try {
     overview = getDashboardOverview();
