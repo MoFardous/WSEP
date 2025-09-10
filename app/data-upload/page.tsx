@@ -55,9 +55,16 @@ export default function DataUploadPage() {
 
       if (result.success) {
         setUploadStatus('success');
+        
+        // Store the processed data in localStorage for now
+        // TODO: Consider implementing database storage
+        if (result.data) {
+          localStorage.setItem('uploadedDashboardData', JSON.stringify(result.data));
+        }
+        
         toast({
           title: "تم رفع الملف بنجاح ✅",
-          description: `تم تحديث لوحة التحكم بـ ${result.totalActivities} نشاط`,
+          description: `تم تحديث لوحة التحكم بـ ${result.data?.totalActivities || 0} نشاط`,
           duration: 5000,
         });
 

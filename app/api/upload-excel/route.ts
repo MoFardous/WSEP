@@ -28,15 +28,10 @@ export async function POST(request: NextRequest) {
 
     console.log('📁 Processing file:', file.name, '(', file.size, 'bytes)');
 
-    // Create temp directory if it doesn't exist
-    const tempDir = path.join(process.cwd(), 'temp');
-    try {
-      await fs.access(tempDir);
-    } catch {
-      await fs.mkdir(tempDir, { recursive: true });
-    }
-
-    // Save uploaded file temporarily
+    // Use /tmp directory for Vercel serverless compatibility
+    const tempDir = '/tmp';
+    
+    // Save uploaded file temporarily in /tmp (writable in Vercel)
     const tempFilePath = path.join(tempDir, `upload-${Date.now()}.xlsx`);
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
@@ -48,10 +43,10 @@ export async function POST(request: NextRequest) {
       // Convert Excel to JSON using our existing function
       const dashboardData = await convertExcelToJSON(tempFilePath);
       
-      // Save the JSON data to the dashboard data file
-      const jsonOutputPath = path.join(process.cwd(), 'data', 'dashboard_data.json');
-      const jsonString = JSON.stringify(dashboardData, null, 2);
-      await writeFile(jsonOutputPath, jsonString, 'utf8');
+      // In Vercel serverless environment, we can't write to local file system
+      // Instead, we'll return the data directly and let the frontend handle it
+      // Note: Consider using a database or external storage for persistence
+      console.log('📊 Data processed successfully, returning to client');
       
       console.log('✅ Dashboard data updated successfully');
       console.log('📊 Statistics:');
@@ -78,7 +73,9 @@ export async function POST(request: NextRequest) {
           totalRisks: dashboardData.risks.total_risks,
           fileName: file.name,
           fileSize: file.size,
-          uploadTime: new Date().toISOString()
+          uploadTime: new Date().toISOString(),
+          // Include the full processed data for frontend use
+          dashboardData: dashboardData
         }
       });
 
