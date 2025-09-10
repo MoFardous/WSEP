@@ -1,6 +1,7 @@
 
 "use client";
 
+import { useState, useEffect } from 'react';
 import { 
   BarChart3, 
   Activity, 
@@ -24,27 +25,66 @@ import { getDashboardOverview, getPhases, getSupportActivities, getRisksData, ge
 import { Phase, SupportActivity, Risk } from '@/lib/types';
 
 export default function HomePage() {
-  // Safely get dashboard data with fallbacks - with proper typing
-  let overview: any = null;
-  let phases: Phase[] | null = null;
-  let supportData: any = null;
-  let risksData: any = null;
-  let timelineData: any = null;
-  
-  try {
-    overview = getDashboardOverview();
-    phases = getPhases();
-    supportData = getSupportActivities();
-    risksData = getRisksData();
-    timelineData = getTimelineData();
-  } catch (error) {
-    console.error('Error loading dashboard data:', error);
-    // Provide fallback data
-    overview = { total_activities: 0, completed_activities: 0, in_progress_activities: 0, delayed_activities: 0, not_started_activities: 0, completion_percentage: 0 };
-    phases = [];
-    supportData = { activities: [], completed_support: 0, total_support: 0 };
-    risksData = { risks_list: [], active_risks: 0, resolved_risks: 0, total_risks: 0 };
-    timelineData = { time_progress_percentage: 0, activity_progress_percentage: 0 };
+  // State for dashboard data
+  const [overview, setOverview] = useState<any>(null);
+  const [phases, setPhases] = useState<Phase[] | null>(null);
+  const [supportData, setSupportData] = useState<any>(null);
+  const [risksData, setRisksData] = useState<any>(null);
+  const [timelineData, setTimelineData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Function to load dashboard data
+  const loadDashboardData = () => {
+    try {
+      setOverview(getDashboardOverview());
+      setPhases(getPhases());
+      setSupportData(getSupportActivities());
+      setRisksData(getRisksData());
+      setTimelineData(getTimelineData());
+    } catch (error) {
+      console.error('Error loading dashboard data:', error);
+      // Provide fallback data
+      setOverview({ total_activities: 0, completed_activities: 0, in_progress_activities: 0, delayed_activities: 0, not_started_activities: 0, completion_percentage: 0 });
+      setPhases([]);
+      setSupportData({ activities: [], completed_support: 0, total_support: 0 });
+      setRisksData({ risks_list: [], active_risks: 0, resolved_risks: 0, total_risks: 0 });
+      setTimelineData({ time_progress_percentage: 0, activity_progress_percentage: 0 });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Load data on component mount and listen for localStorage changes
+  useEffect(() => {
+    loadDashboardData();
+
+    // Listen for localStorage changes (when data is uploaded)
+    const handleStorageChange = () => {
+      console.log('LocalStorage changed, reloading dashboard data');
+      loadDashboardData();
+    };
+
+    // Listen for storage events and custom events
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('dashboard-data-updated', handleStorageChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('dashboard-data-updated', handleStorageChange);
+    };
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto max-w-7xl px-4 py-8">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+            <p className="mt-4 text-muted-foreground">جاري تحميل البيانات...</p>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (

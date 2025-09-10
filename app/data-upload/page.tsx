@@ -60,6 +60,9 @@ export default function DataUploadPage() {
         // TODO: Consider implementing database storage
         if (result.data) {
           localStorage.setItem('uploadedDashboardData', JSON.stringify(result.data));
+          
+          // Dispatch custom event to notify dashboard of data update
+          window.dispatchEvent(new CustomEvent('dashboard-data-updated'));
         }
         
         toast({

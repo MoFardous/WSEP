@@ -1,13 +1,13 @@
 
 import { DashboardData } from './types';
 
-// Safe import with error handling
-let dashboardDataRaw: any = {};
+// Safe import with error handling for static data
+let staticDashboardData: any = {};
 try {
-  dashboardDataRaw = require('../data/dashboard_data.json');
+  staticDashboardData = require('../data/dashboard_data.json');
 } catch (error) {
-  console.error('Failed to load dashboard data:', error);
-  dashboardDataRaw = {
+  console.error('Failed to load static dashboard data:', error);
+  staticDashboardData = {
     overview: {
       total_activities: 0,
       completed_activities: 0,
@@ -23,30 +23,58 @@ try {
   };
 }
 
-export const dashboardData: DashboardData = dashboardDataRaw as DashboardData;
+// Function to get the current dashboard data (checks localStorage first, then falls back to static)
+function getCurrentDashboardData(): DashboardData {
+  // Check if running in browser environment
+  if (typeof window !== 'undefined') {
+    try {
+      const uploadedData = localStorage.getItem('uploadedDashboardData');
+      if (uploadedData) {
+        const parsedUploadedData = JSON.parse(uploadedData);
+        // If we have uploaded data with dashboardData property, use it
+        if (parsedUploadedData.dashboardData) {
+          console.log('Using uploaded dashboard data from localStorage');
+          return parsedUploadedData.dashboardData as DashboardData;
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load uploaded data from localStorage:', error);
+    }
+  }
+  
+  // Fall back to static data
+  return staticDashboardData as DashboardData;
+}
 
+// Dynamic getters that always use the latest data
 export function getDashboardOverview() {
-  return dashboardData.overview;
+  const currentData = getCurrentDashboardData();
+  return currentData.overview;
 }
 
 export function getPhases() {
-  return dashboardData.phases;
+  const currentData = getCurrentDashboardData();
+  return currentData.phases;
 }
 
 export function getSupportActivities() {
-  return dashboardData.support;
+  const currentData = getCurrentDashboardData();
+  return currentData.support;
 }
 
 export function getRisksData() {
-  return dashboardData.risks;
+  const currentData = getCurrentDashboardData();
+  return currentData.risks;
 }
 
 export function getTimelineData() {
-  return dashboardData.timeline;
+  const currentData = getCurrentDashboardData();
+  return currentData.timeline;
 }
 
 export function getAllActivities() {
-  return dashboardData.phases?.flatMap(phase => phase.activities) || [];
+  const currentData = getCurrentDashboardData();
+  return currentData.phases?.flatMap(phase => phase.activities) || [];
 }
 
 export function getActivitiesByStatus(status: string) {
@@ -55,20 +83,27 @@ export function getActivitiesByStatus(status: string) {
 }
 
 export function getActivitiesByPhase(phaseName: string) {
-  const phase = dashboardData.phases?.find(p => p.name === phaseName);
+  const currentData = getCurrentDashboardData();
+  const phase = currentData.phases?.find(p => p.name === phaseName);
   return phase?.activities || [];
 }
 
 export function getRisksByStatus(status: string) {
-  return dashboardData.risks.risks_list?.filter(risk => risk.الحالة === status) || [];
+  const currentData = getCurrentDashboardData();
+  return currentData.risks.risks_list?.filter(risk => risk.الحالة === status) || [];
 }
 
 export function getRisksByType(type: string) {
-  return dashboardData.risks.risks_list?.filter(risk => risk.النوع === type) || [];
+  const currentData = getCurrentDashboardData();
+  return currentData.risks.risks_list?.filter(risk => risk.النوع === type) || [];
 }
 
 export function getSupportActivitiesByMember(member: string) {
-  return dashboardData.support.activities?.filter(
+  const currentData = getCurrentDashboardData();
+  return currentData.support.activities?.filter(
     activity => activity['المسؤول من الفريق'] === member
   ) || [];
 }
+
+// Legacy export for backwards compatibility
+export const dashboardData: DashboardData = getCurrentDashboardData();
