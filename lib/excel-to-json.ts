@@ -60,7 +60,6 @@ export interface ExcelData {
 export async function convertExcelToJSON(excelFilePath: string): Promise<ExcelData> {
   try {
     // Read the Excel file as buffer first, then parse
-    const fs = await import('fs').then(m => m.promises);
     const fileBuffer = await fs.readFile(excelFilePath);
     const workbook = XLSX.read(fileBuffer, { type: 'buffer' });
     const sheetNames = workbook.SheetNames;

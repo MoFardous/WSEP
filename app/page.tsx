@@ -21,11 +21,12 @@ import { Button } from '@/components/ui/button';
 import { RefreshButton, DataSyncIndicator } from '@/components/ui/refresh-button';
 import Link from 'next/link';
 import { getDashboardOverview, getPhases, getSupportActivities, getRisksData, getTimelineData } from '@/lib/dashboard-data';
+import { Phase, SupportActivity, Risk } from '@/lib/types';
 
 export default function HomePage() {
   // Safely get dashboard data with fallbacks - with proper typing
   let overview: any = null;
-  let phases: any = null;
+  let phases: Phase[] | null = null;
   let supportData: any = null;
   let risksData: any = null;
   let timelineData: any = null;
@@ -204,7 +205,7 @@ export default function HomePage() {
             </div>
             
             <div className="space-y-2">
-              {supportData?.activities?.slice(0, 3)?.map((activity, index) => (
+              {supportData?.activities?.slice(0, 3)?.map((activity: SupportActivity, index: number) => (
                 <div key={index} className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
                   <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
                   <div className="flex-1 min-w-0">
@@ -250,7 +251,7 @@ export default function HomePage() {
             </div>
             
             <div className="space-y-2">
-              {risksData?.risks_list?.filter(risk => risk.الحالة === 'قائم')?.slice(0, 2)?.map((risk, index) => (
+              {risksData?.risks_list?.filter((risk: Risk) => risk.الحالة === 'قائم')?.slice(0, 2)?.map((risk: Risk, index: number) => (
                 <div key={index} className="p-3 bg-red-50 dark:bg-red-950/20 rounded-lg">
                   <div className="flex items-start gap-2">
                     <Badge variant="destructive" className="text-xs">

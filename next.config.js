@@ -9,8 +9,8 @@ const nextConfig = {
   images: { 
     unoptimized: true 
   },
-  // Fix webpack chunk loading issues
-  webpack: (config, { isServer }) => {
+  // Fix webpack chunk loading issues and rate limiting
+  webpack: (config, { isServer, dev }) => {
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
@@ -18,20 +18,65 @@ const nextConfig = {
         net: false,
         tls: false,
       };
+      
+      // Reduce chunk splitting to prevent 429 errors
+      config.optimization = {
+        ...config.optimization,
+        splitChunks: {
+          chunks: 'all',
+          cacheGroups: {
+            default: false,
+            vendors: false,
+            framework: {
+              chunks: 'all',
+              name: 'framework',
+              test: /(?<!node_modules.*)[\\/]node_modules[\\/](react|react-dom|scheduler|prop-types|use-subscription)[\\/]/,
+              priority: 40,
+              enforce: true,
+            },
+            lib: {
+              test: /[\\/]node_modules[\\/]/,
+              name: 'lib',
+              priority: 30,
+              chunks: 'all',
+            },
+            commons: {
+              name: 'commons',
+              minChunks: 2,
+              chunks: 'all',
+              priority: 20,
+            },
+          },
+        },
+      };
     }
     return config;
   },
-  // Optimize for Vercel deployment
+  // Optimize for Vercel deployment with better caching
   compress: true,
   poweredByHeader: false,
-  // Reduce build size and chunk issues
+  // Better chunk loading strategy
   experimental: {
-    optimizeCss: true,
+    esmExternals: true,
   },
-  // Handle large pages better
+  // Reduce concurrent requests to prevent rate limiting
   onDemandEntries: {
-    maxInactiveAge: 25 * 1000,
-    pagesBufferLength: 2,
+    maxInactiveAge: 60 * 1000,
+    pagesBufferLength: 5,
+  },
+  // Add better error handling
+  async headers() {
+    return [
+      {
+        source: '/_next/static/(.*)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+    ];
   },
 };
 

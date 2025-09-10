@@ -35,6 +35,28 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              // Handle chunk loading errors
+              window.addEventListener('error', function(event) {
+                if (event.message && event.message.includes('ChunkLoadError')) {
+                  console.warn('ChunkLoadError detected, attempting reload...');
+                  window.location.reload();
+                }
+              });
+              
+              // Handle unhandled promise rejections (for chunk loading failures)
+              window.addEventListener('unhandledrejection', function(event) {
+                if (event.reason && event.reason.name === 'ChunkLoadError') {
+                  console.warn('ChunkLoadError promise rejection detected, attempting reload...');
+                  event.preventDefault();
+                  window.location.reload();
+                }
+              });
+            `,
+          }}
+        />
       </head>
       <body className={`${cairo.className} rtl arabic-text antialiased`}>
         <ThemeProvider
