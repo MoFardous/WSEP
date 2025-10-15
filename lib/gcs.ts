@@ -1,33 +1,49 @@
 import { Storage } from '@google-cloud/storage';
 
-// Initialize Google Cloud Storage only if credentials are available
-const bucketName = process.env.GCS_BUCKET_NAME;
+// Lazy initialization - only create storage client when first needed
 let storage: Storage | null = null;
 let bucket: any = null;
+let initialized = false;
 
-// Only initialize if all required env vars are present
-if (
-  bucketName &&
-  process.env.GCS_PROJECT_ID &&
-  process.env.GCS_CLIENT_EMAIL &&
-  process.env.GCS_PRIVATE_KEY
-) {
-  storage = new Storage({
-    projectId: process.env.GCS_PROJECT_ID,
-    credentials: {
-      client_email: process.env.GCS_CLIENT_EMAIL,
-      private_key: process.env.GCS_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-    },
+function initializeGCS() {
+  if (initialized) {
+    return;
+  }
+
+  const bucketName = process.env.GCS_BUCKET_NAME;
+  const projectId = process.env.GCS_PROJECT_ID;
+  const clientEmail = process.env.GCS_CLIENT_EMAIL;
+  const privateKey = process.env.GCS_PRIVATE_KEY;
+
+  console.log('🔧 Initializing GCS with:', {
+    bucketName: bucketName ? '✓' : '✗',
+    projectId: projectId ? '✓' : '✗',
+    clientEmail: clientEmail ? '✓' : '✗',
+    privateKey: privateKey ? '✓' : '✗',
   });
-  bucket = storage.bucket(bucketName);
-}
 
-function checkGCSConfigured(): void {
-  if (!storage || !bucket) {
+  if (!bucketName || !projectId || !clientEmail || !privateKey) {
     throw new Error(
       'Google Cloud Storage is not configured. Please set GCS_BUCKET_NAME, GCS_PROJECT_ID, GCS_CLIENT_EMAIL, and GCS_PRIVATE_KEY environment variables.'
     );
   }
+
+  storage = new Storage({
+    projectId: projectId,
+    credentials: {
+      client_email: clientEmail,
+      private_key: privateKey.replace(/\\n/g, '\n'),
+    },
+  });
+
+  bucket = storage.bucket(bucketName);
+  initialized = true;
+  console.log('✅ GCS initialized successfully for bucket:', bucketName);
+}
+
+function getBucket() {
+  initializeGCS();
+  return bucket!;
 }
 
 /**
@@ -37,8 +53,8 @@ function checkGCSConfigured(): void {
  * @returns Public URL of uploaded file
  */
 export async function uploadFile(fileBuffer: Buffer, filename: string): Promise<string> {
-  checkGCSConfigured();
-  const blob = bucket!.file(filename);
+  const currentBucket = getBucket();
+  const blob = currentBucket.file(filename);
 
   await blob.save(fileBuffer, {
     resumable: false,
@@ -50,7 +66,7 @@ export async function uploadFile(fileBuffer: Buffer, filename: string): Promise<
   // Make file publicly readable
   await blob.makePublic();
 
-  return `https://storage.googleapis.com/${bucketName}/${filename}`;
+  return `https://storage.googleapis.com/${process.env.GCS_BUCKET_NAME}/${filename}`;
 }
 
 /**
@@ -59,8 +75,8 @@ export async function uploadFile(fileBuffer: Buffer, filename: string): Promise<
  * @returns File buffer
  */
 export async function downloadFile(filename: string): Promise<Buffer> {
-  checkGCSConfigured();
-  const file = bucket!.file(filename);
+  const currentBucket = getBucket();
+  const file = currentBucket.file(filename);
   const [contents] = await file.download();
   return contents;
 }
@@ -70,8 +86,8 @@ export async function downloadFile(filename: string): Promise<Buffer> {
  * @returns List of files with metadata
  */
 export async function listFiles() {
-  checkGCSConfigured();
-  const [files] = await bucket!.getFiles();
+  const currentBucket = getBucket();
+  const [files] = await currentBucket.getFiles();
   return files.map((file: any) => ({
     name: file.name,
     size: file.metadata.size,
@@ -84,8 +100,8 @@ export async function listFiles() {
  * @param filename - File to delete
  */
 export async function deleteFile(filename: string): Promise<void> {
-  checkGCSConfigured();
-  await bucket!.file(filename).delete();
+  const currentBucket = getBucket();
+  await currentBucket.file(filename).delete();
 }
 
 /**
@@ -94,8 +110,8 @@ export async function deleteFile(filename: string): Promise<void> {
  * @returns True if file exists
  */
 export async function fileExists(filename: string): Promise<boolean> {
-  checkGCSConfigured();
-  const file = bucket!.file(filename);
+  const currentBucket = getBucket();
+  const file = currentBucket.file(filename);
   const [exists] = await file.exists();
   return exists;
 }
