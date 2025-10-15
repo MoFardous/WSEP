@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
     console.log('📥 Fetching dashboard data from Google Cloud Storage...');
 
     // The filename in GCS bucket that contains the dashboard data
-    const gcsFilename = 'weqaa_social_economic_dashbaord.xlsx';
+    const gcsFilename = 'Dasbord Data Input 2.xlsx';
 
     // Check if file exists in GCS
     const exists = await fileExists(gcsFilename);
