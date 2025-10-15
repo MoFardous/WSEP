@@ -1,23 +1,23 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { 
-  Activity, 
-  Search, 
-  Filter, 
+import {
+  Activity,
+  Search,
+  Filter,
   Calendar,
   CheckCircle2,
   Clock,
   XCircle,
   CircleDot
 } from 'lucide-react';
-import { getAllActivities, getPhases } from '@/lib/dashboard-data';
+import { getAllActivities, getPhases, fetchDashboardDataFromAPI } from '@/lib/dashboard-data';
 import { Activity as ActivityType, ActivityStatus } from '@/lib/types';
 import { toast } from 'sonner';
 
@@ -25,9 +25,20 @@ export default function ActivitiesPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [selectedPhase, setSelectedPhase] = useState<string>('all');
-  
-  const allActivities = getAllActivities();
-  const phases = getPhases();
+  const [allActivities, setAllActivities] = useState<ActivityType[]>([]);
+  const [phases, setPhases] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch data on mount
+  useEffect(() => {
+    const loadData = async () => {
+      await fetchDashboardDataFromAPI();
+      setAllActivities(getAllActivities());
+      setPhases(getPhases());
+      setIsLoading(false);
+    };
+    loadData();
+  }, []);
 
   const filteredActivities = useMemo(() => {
     return allActivities?.filter(activity => {

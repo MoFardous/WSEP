@@ -21,7 +21,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { RefreshButton, DataSyncIndicator } from '@/components/ui/refresh-button';
 import Link from 'next/link';
-import { getDashboardOverview, getPhases, getSupportActivities, getRisksData, getTimelineData } from '@/lib/dashboard-data';
+import { getDashboardOverview, getPhases, getSupportActivities, getRisksData, getTimelineData, fetchDashboardDataFromAPI } from '@/lib/dashboard-data';
 import { Phase, SupportActivity, Risk } from '@/lib/types';
 
 export default function HomePage() {
@@ -34,8 +34,19 @@ export default function HomePage() {
   const [isLoading, setIsLoading] = useState(true);
 
   // Function to load dashboard data
-  const loadDashboardData = () => {
+  const loadDashboardData = async () => {
     try {
+      // First try to fetch from Google Cloud Storage via API
+      console.log('🔄 Fetching dashboard data from Google Cloud Storage...');
+      const apiData = await fetchDashboardDataFromAPI();
+
+      if (apiData) {
+        console.log('✅ Successfully loaded data from GCS');
+      } else {
+        console.log('⚠️ Using fallback data');
+      }
+
+      // After fetching (or if fetch failed), get the current data
       setOverview(getDashboardOverview());
       setPhases(getPhases());
       setSupportData(getSupportActivities());

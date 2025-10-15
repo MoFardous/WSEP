@@ -1,23 +1,23 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { 
-  AlertTriangle, 
-  Search, 
-  Filter, 
+import {
+  AlertTriangle,
+  Search,
+  Filter,
   Shield,
   AlertCircle,
   CheckCircle2,
   Zap,
   XCircle
 } from 'lucide-react';
-import { getRisksData } from '@/lib/dashboard-data';
+import { getRisksData, fetchDashboardDataFromAPI } from '@/lib/dashboard-data';
 import { Risk, RiskStatus, RiskType } from '@/lib/types';
 import { toast } from 'sonner';
 
@@ -25,9 +25,19 @@ export default function RisksPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [selectedType, setSelectedType] = useState<string>('all');
-  
-  const risksData = getRisksData();
-  const risksList = risksData?.risks_list || [];
+  const [risksList, setRisksList] = useState<Risk[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch data on mount
+  useEffect(() => {
+    const loadData = async () => {
+      await fetchDashboardDataFromAPI();
+      const risksData = getRisksData();
+      setRisksList(risksData?.risks_list || []);
+      setIsLoading(false);
+    };
+    loadData();
+  }, []);
 
   const filteredRisks = useMemo(() => {
     return risksList?.filter(risk => {

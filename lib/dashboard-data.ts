@@ -23,8 +23,36 @@ try {
   };
 }
 
-// Function to get the current dashboard data (checks localStorage first, then falls back to static)
+// Cache for dashboard data fetched from API
+let cachedDashboardData: DashboardData | null = null;
+
+// Function to fetch dashboard data from Google Cloud Storage via API
+export async function fetchDashboardDataFromAPI(): Promise<DashboardData | null> {
+  try {
+    const response = await fetch('/api/get-data');
+    const result = await response.json();
+
+    if (result.success && result.data) {
+      console.log('✅ Dashboard data fetched from Google Cloud Storage');
+      cachedDashboardData = result.data as DashboardData;
+      return result.data as DashboardData;
+    } else {
+      console.warn('⚠️ No data found in Google Cloud Storage, using fallback');
+      return null;
+    }
+  } catch (error) {
+    console.error('❌ Failed to fetch dashboard data from API:', error);
+    return null;
+  }
+}
+
+// Function to get the current dashboard data (checks cache, then API, then localStorage, then static)
 function getCurrentDashboardData(): DashboardData {
+  // First check if we have cached data from API
+  if (cachedDashboardData) {
+    return cachedDashboardData;
+  }
+
   // Check if running in browser environment
   if (typeof window !== 'undefined') {
     try {
@@ -41,7 +69,7 @@ function getCurrentDashboardData(): DashboardData {
       console.error('Failed to load uploaded data from localStorage:', error);
     }
   }
-  
+
   // Fall back to static data
   return staticDashboardData as DashboardData;
 }

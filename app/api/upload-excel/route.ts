@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { convertExcelToJSON } from '@/lib/excel-to-json';
+import { uploadFile } from '@/lib/gcs';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { writeFile } from 'fs/promises';
@@ -40,14 +41,16 @@ export async function POST(request: NextRequest) {
     console.log('💾 File saved temporarily at:', tempFilePath);
 
     try {
+      // Upload the Excel file to Google Cloud Storage
+      // Use a consistent filename so all users get the latest version
+      const gcsFilename = 'dashboard-latest.xlsx';
+      const gcsUrl = await uploadFile(buffer, gcsFilename);
+      console.log('☁️ File uploaded to Google Cloud Storage:', gcsUrl);
+
       // Convert Excel to JSON using our existing function
       const dashboardData = await convertExcelToJSON(tempFilePath);
-      
-      // In Vercel serverless environment, we can't write to local file system
-      // Instead, we'll return the data directly and let the frontend handle it
-      // Note: Consider using a database or external storage for persistence
-      console.log('📊 Data processed successfully, returning to client');
-      
+
+      console.log('📊 Data processed successfully');
       console.log('✅ Dashboard data updated successfully');
       console.log('📊 Statistics:');
       console.log(`   - Total activities: ${dashboardData.overview.total_activities}`);
@@ -74,6 +77,7 @@ export async function POST(request: NextRequest) {
           fileName: file.name,
           fileSize: file.size,
           uploadTime: new Date().toISOString(),
+          gcsUrl: gcsUrl,
           // Include the full processed data for frontend use
           dashboardData: dashboardData
         }

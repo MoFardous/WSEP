@@ -1,29 +1,41 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { 
-  Users, 
-  Search, 
-  Filter, 
+import {
+  Users,
+  Search,
+  Filter,
   Calendar,
   CheckCircle2,
   User
 } from 'lucide-react';
-import { getSupportActivities } from '@/lib/dashboard-data';
+import { getSupportActivities, fetchDashboardDataFromAPI } from '@/lib/dashboard-data';
 import { toast } from 'sonner';
 
 export default function SupportPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedMember, setSelectedMember] = useState<string>('all');
-  
-  const supportData = getSupportActivities();
-  const activities = supportData?.activities || [];
+  const [activities, setActivities] = useState<any[]>([]);
+  const [supportData, setSupportData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch data on mount
+  useEffect(() => {
+    const loadData = async () => {
+      await fetchDashboardDataFromAPI();
+      const data = getSupportActivities();
+      setSupportData(data);
+      setActivities(data?.activities || []);
+      setIsLoading(false);
+    };
+    loadData();
+  }, []);
 
   const teamMembers = useMemo(() => {
     const members = new Set<string>();
