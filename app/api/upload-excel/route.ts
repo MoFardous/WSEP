@@ -42,8 +42,8 @@ export async function POST(request: NextRequest) {
 
     try {
       // Upload the Excel file to Google Cloud Storage
-      // Use a consistent filename so all users get the latest version
-      const gcsFilename = 'dashboard-latest.xlsx';
+      // Use the standard filename that the dashboard reads from
+      const gcsFilename = 'weqaa_social_economic_dashbaord.xlsx';
       const gcsUrl = await uploadFile(buffer, gcsFilename);
       console.log('☁️ File uploaded to Google Cloud Storage:', gcsUrl);
 
